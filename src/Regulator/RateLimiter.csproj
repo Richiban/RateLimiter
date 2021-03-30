@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+
+    <Nullable>Enable</Nullable>
+
+    <AssemblyName>Richiban.Regulator</AssemblyName>
+    <RootNamespace>Richiban.Regulator</RootNamespace>
+  </PropertyGroup>
+
+</Project>

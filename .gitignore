@@ -334,3 +334,4 @@ nuget.config
 
 # Local configuration
 **/appsettings.Development.json
+.ionide
