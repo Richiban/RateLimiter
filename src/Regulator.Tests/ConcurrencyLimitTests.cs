@@ -7,17 +7,21 @@ namespace Richiban.Regulator.Tests
 {
     public class ConcurrencyLimitTests
     {
+        private static readonly Random Random = new();
+
         [Test]
         public async Task TestConcurrency()
         {
-            var concurrencyLimit = 2;
-            var rateLimiter = new RateLimiter(new ConcurrencyRateLimit(concurrencyLimit));
+            var concurrencyLimit = Random.Next(2, 10);
+            var rateLimit = new ConcurrencyRateLimit(concurrencyLimit);
+            var iterations = concurrencyLimit + Random.Next(5, 10);
 
             var runCounter = 0;
             var concurrentRunCounter = 0;
 
             async Task asyncOperation()
             {
+                await rateLimit.WaitAsync();
                 runCounter++;
 
                 concurrentRunCounter = Math.Max(runCounter, concurrentRunCounter);
@@ -25,13 +29,10 @@ namespace Richiban.Regulator.Tests
                 await Task.Delay(100);
 
                 runCounter--;
+                rateLimit.Done();
             }
 
-            var opCount = 3;
-
-            await Enumerable.Range(0, opCount)
-                .Select(_ => rateLimiter.WhenReady(asyncOperation))
-                .WhenAll();
+            await Enumerable.Range(0, iterations).Select(_ => asyncOperation()).WhenAll();
 
             Assert.That(concurrentRunCounter, Is.EqualTo(concurrencyLimit));
         }
