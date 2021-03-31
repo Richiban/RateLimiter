@@ -56,29 +56,13 @@ namespace Richiban.Regulator.Tests
         [Test]
         public void TestTimeout()
         {
-            var rateLimiter = new RateLimiter(new DodgyRateLimit(TimeSpan.FromMilliseconds(200)))
+            var rateLimiter = new RateLimiter(new TestingRateLimit(TimeSpan.FromMilliseconds(200)))
             {
                 WaitTimeout = TimeSpan.FromMilliseconds(100)
             };
 
             Assert.ThrowsAsync<TimeoutException>(
                 () => rateLimiter.WhenReady(() => Task.Delay(200)));
-        }
-
-        class DodgyRateLimit : IRateLimit
-        {
-            public DodgyRateLimit(TimeSpan timeToWait)
-            {
-                TimeToWait = timeToWait;
-            }
-
-            public TimeSpan? TimeToWait { get; }
-
-            public Task WaitAsync() => Task.Delay(TimeToWait.Value);
-
-            public void Done()
-            {
-            }
         }
     }
 }

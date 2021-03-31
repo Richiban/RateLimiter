@@ -48,6 +48,14 @@ namespace Richiban.Regulator
             }
         }
 
+        public async Task IsReady()
+        {
+            if (TimeToWait is { } time && time > TimeSpan.Zero)
+            {
+                await Task.Delay(time);
+            }
+        }
+
         public async Task WaitAsync()
         {
             if (AllTimersInUse && _timers.TryPeek(out var nextTimer))

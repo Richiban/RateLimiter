@@ -26,7 +26,11 @@ namespace Richiban.Regulator
             TimeSpan? waitTimeout = null)
         {
             _rateLimiters = data.Select(
-                    t => (t, new RateLimiter(rateLimits) { WaitTimeout = waitTimeout ?? TimeSpan.Zero }))
+                    t => (t,
+                        new RateLimiter(rateLimits)
+                        {
+                            WaitTimeout = waitTimeout ?? TimeSpan.Zero
+                        }))
                 .ToList();
 
             if (_rateLimiters.Count < 1)
@@ -35,12 +39,33 @@ namespace Richiban.Regulator
             }
         }
 
-        public async Task<R> WithNextAvailableData<R>(Func<T, Task<R>> continueWithData)
+        public async Task<R> WithNextAvailableDataAsync<R>(
+            Func<T, Task<R>> continueWithData)
         {
-            var (token, rateLimiter) =
-                _rateLimiters.OrderBy(rl => rl.rateLimiter.TimeToWait).First();
+            var (data, rateLimiter) = await _rateLimiters.Select(
+                    async rl =>
+                    {
+                        await rl.rateLimiter.IsReady();
 
-            return await rateLimiter.WhenReady(() => continueWithData(token));
+                        return rl;
+                    })
+                .WhenAny();
+
+            return await rateLimiter.WhenReady(() => continueWithData(data));
+        }
+
+        public async Task WithNextAvailableDataAsync(Func<T, Task> continueWithData)
+        {
+            var (data, rateLimiter) = await _rateLimiters.Select(
+                    async rl =>
+                    {
+                        await rl.rateLimiter.IsReady();
+
+                        return rl;
+                    })
+                .WhenAny();
+
+            await rateLimiter.WhenReady(() => continueWithData(data));
         }
     }
 }

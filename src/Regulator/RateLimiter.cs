@@ -27,9 +27,10 @@ namespace Richiban.Regulator
 
         public TimeSpan WaitTimeout { get; init; }
 
-        public TimeSpan TimeToWait =>
-            _rateLimits.Select(rl => rl.TimeToWait).Aggregate((x, y) => x > y ? x : y)
-            ?? TimeSpan.Zero;
+        public async Task WaitForReady()
+        {
+            await _rateLimits.Select(rl => rl.IsReady()).WhenAll();
+        }
 
         public async Task<T> WhenReady<T>(Func<Task<T>> f)
         {
@@ -65,6 +66,11 @@ namespace Richiban.Regulator
                     rl.Done();
                 }
             }
+        }
+
+        public async Task IsReady()
+        {
+            await _rateLimits.Select(rl => rl.IsReady()).WhenAll();
         }
     }
 }

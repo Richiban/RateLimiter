@@ -5,7 +5,7 @@ namespace Richiban.Regulator
 {
     public interface IRateLimit
     {
-        public TimeSpan? TimeToWait { get; }
+        Task IsReady();
         Task WaitAsync();
         void Done();
     }
